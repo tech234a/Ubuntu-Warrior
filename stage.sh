@@ -30,9 +30,8 @@ fi
 # /etc/inittab
 rm /etc/inittab
 cat <<EOT >> /etc/inittab
-::sysinit:/sbin/openrc sysinit
-::sysinit:/sbin/openrc boot
-::wait:/sbin/openrc default
+::sysinit:/bin/sh -c "if [ -f /root/splashes/at-splash-startup-640x400-32.fb ]; then cat /root/splashes/at-splash-startup-640x400-32.fb > /dev/fb0; /sbin/openrc sysinit --quiet > /dev/null 2>&1; /sbin/openrc boot --quiet > /dev/null 2>&1; else /sbin/openrc sysinit; /sbin/openrc boot; fi"
+::wait:/bin/sh -c "if [ -f /root/splashes/at-splash-startup-640x400-32.fb ]; then cat /root/splashes/at-splash-startup-640x400-32.fb > /dev/fb0; /sbin/openrc default --quiet > /dev/null 2>&1; else /sbin/openrc default; fi"
 
 # Set up a couple of getty's
 tty1::respawn:/bin/sh /root/boot.sh
@@ -46,7 +45,7 @@ tty6::respawn:/sbin/getty 38400 tty6
 ::ctrlaltdel:/sbin/reboot
 
 # Stuff to do before rebooting
-::shutdown:/sbin/openrc shutdown
+::shutdown:/bin/sh -c "if [ -f /root/splashes/at-splash-shutdown-640x400-32.fb ]; then cat /root/splashes/at-splash-shutdown-640x400-32.fb > /dev/fb0; /sbin/openrc shutdown --quiet > /dev/null 2>&1; else /sbin/openrc shutdown; fi"
 EOT
 
 # Disable the console screensaver
@@ -76,6 +75,31 @@ wget ${REPO_PREFIX}${BRANCH}/warrior-logs.sh -O /root/warrior-logs.sh
 chmod +x /root/warrior-logs.sh
 wget ${REPO_PREFIX}${BRANCH}/watchtower-logs.sh -O /root/watchtower-logs.sh
 chmod +x /root/watchtower-logs.sh
+
+# Download splashes
+mkdir /root/splashes
+wget ${REPO_PREFIX}${BRANCH}/splash/splashes/at-splash-ready-640x400-32.fb -O /root/splashes/at-splash-ready-640x400-32.fb
+wget ${REPO_PREFIX}${BRANCH}/splash/splashes/at-splash-update-640x400-32.fb -O /root/splashes/at-splash-update-640x400-32.fb
+wget ${REPO_PREFIX}${BRANCH}/splash/splashes/at-splash-outdated-640x400-32.fb -O /root/splashes/at-splash-outdated-640x400-32.fb
+wget ${REPO_PREFIX}${BRANCH}/splash/splashes/at-splash-startup-640x400-32.fb -O /root/splashes/at-splash-startup-640x400-32.fb
+wget ${REPO_PREFIX}${BRANCH}/splash/splashes/at-splash-shutdown-640x400-32.fb -O /root/splashes/at-splash-shutdown-640x400-32.fb
+wget ${REPO_PREFIX}${BRANCH}/splash/splashes/at-splash-restart-640x400-32.fb -O /root/splashes/at-splash-restart-640x400-32.fb
+
+# Update, install and configure framebuffer
+apk update
+apk add v86d
+echo "sbin/v86d" > /etc/mkinitfs/features.d/v86d.files
+# https://wiki.alpinelinux.org/wiki/Uvesafb, https://wiki.archlinux.org/index.php/uvesafb#Define_a_resolution
+# the following file might change in future Alpine versions
+cat <<EOT >> /etc/mkinitfs/mkinitfs.conf
+features="ata base ide scsi usb virtio ext4 kms v86d"
+files="/etc/modprobe.d/uvesafb.conf"
+EOT
+echo "options uvesafb mode_option=640x400-32 scroll=ywrap" > /etc/modprobe.d/uvesafb.conf
+mkinitfs -o /boot/initramfs-virt
+# the following file might change in future Alpine versions
+sed -i '/modules=/c modules=sd-mod,usb-storage,ext4,uvesafb' /etc/update-extlinux.conf
+update-extlinux
 
 #Update and install Docker
 apk update
