@@ -1,6 +1,8 @@
 #!/bin/sh
-reset
-echo "=== Starting Warrior Download ==="
+if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+    reset
+    echo "=== Starting Warrior Download ==="
+fi
 
 # Versions 3.0 and 3.1 of the VM image use a file at /root/docker_container_id.txt to keep track
 # of the container ID for the Warrior image. If this file is detected, the user is migrated to
@@ -97,7 +99,7 @@ elif [ $i -eq 60 ]; then
 fi
 done
 
-if [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+if [ -f /root/splashes/at-splash-ready-640x400-32.fb ]; then 
     cat /root/splashes/at-splash-ready-640x400-32.fb > /dev/fb0
 else
     reset
@@ -125,24 +127,24 @@ sleep 20
 while true; do
 sleep 10
 if docker exec -it warrior test -f /tmp/warrior_reboot_required; then
-    if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+    if ! [ -f /root/splashes/at-splash-shutdown-640x400-32.fb ]; then # reboot currently uses shutdown splash
         echo "Detected warrior needing reboot. Rebooting!"
     fi
     reboot
 elif docker exec -it warrior test -f /tmp/warrior_poweroff_required; then
-    if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+    if ! [ -f /root/splashes/at-splash-shutdown-640x400-32.fb ]; then 
         echo "Detected warrior needing poweroff. Powering off!"
     fi
     poweroff
 elif docker ps -f name=warrior -f status=dead | grep warrior; then
-    if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+    if ! [ -f /root/splashes/at-splash-shutdown-640x400-32.fb ]; then 
         echo "Docker container instance dead. Rebooting!"
     fi
     reboot
 elif docker ps -f name=warrior -f status=exited | grep warrior; then
     sleep 5 # Prevent a Watchtower update from shutting down the system
     if docker ps -f name=warrior -f status=exited | grep warrior; then
-        if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+        if ! [ -f /root/splashes/at-splash-shutdown-640x400-32.fb ]; then 
             echo "Docker container instance exited, Powering off!"
         fi
         poweroff
