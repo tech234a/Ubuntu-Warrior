@@ -15,7 +15,7 @@ if [ -f /root/docker_container_id.txt ]; then
     echo "Backing up the user configuration..."
     docker cp $CONTAINER_ID:/home/warrior/projects/config.json /root/config.json
     echo "Cleaning up the old version..."
-    docker rm $CONTAINER_ID
+    docker rm $CONTAINER_ID > /dev/null
     docker system prune -a -f
     rm /root/docker_container_id.txt
     echo "Now ready to install the new Warrior and automatic updater!"
@@ -32,9 +32,9 @@ chmod 777 /root/config.json
 # https://stackoverflow.com/a/50667460
 if [ ! "$(docker ps -a --format {{.Names}} | grep watchtower)" ]; then
     echo "Please wait while the automatic updater is prepared..."
-    docker run -d --name watchtower -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --cleanup --interval 3600
+    docker run -d --name watchtower -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --cleanup --interval 3600 > /dev/null
 else
-    docker start watchtower
+    docker start watchtower > /dev/null
 fi
 
 # If a container named warrior does not exist, create and configure it.
@@ -48,14 +48,14 @@ if [ ! "$(docker ps -a --format {{.Names}} | grep warrior)" ]; then
     echo "This may take a few minutes..."
     # Mount the user configuration from the host container
     # https://stackoverflow.com/a/54787364, https://docs.docker.com/storage/bind-mounts
-    docker run -d -p 8001:8001 --name warrior -v /root/config.json:/home/warrior/projects/config.json atdr.meo.ws/archiveteam/warrior-dockerfile
+    docker run -d -p 8001:8001 --name warrior -v /root/config.json:/home/warrior/projects/config.json atdr.meo.ws/archiveteam/warrior-dockerfile > /dev/null
     # Allow reading network stats by non-root
     # Run the adduser command as root: https://stackoverflow.com/a/35485346
-    docker exec -u 0 -it warrior adduser warrior dip
+    docker exec -u 0 -it warrior adduser warrior dip > /dev/null
     # Restart the container to apply the access changes
-    docker restart warrior
+    docker restart warrior > /dev/null
 else
-    docker start warrior
+    docker start warrior > /dev/null
 fi
 
 if [ ! "$(docker ps -a --format {{.Names}} | grep warrior)" ]; then
