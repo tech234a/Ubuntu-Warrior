@@ -31,7 +31,11 @@ chmod 777 /root/config.json
 # Watchtower is configured to check for updates every hour, and to delete outdated images.
 # https://stackoverflow.com/a/50667460
 if [ ! "$(docker ps -a --format {{.Names}} | grep watchtower)" ]; then
-    echo "Please wait while the automatic updater is prepared..."
+    if [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+        cat /root/splashes/at-splash-update-640x400-32.fb > /dev/fb0
+    else
+        echo "Please wait while the automatic updater is prepared..."
+    fi
     docker run -d --name watchtower -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --cleanup --interval 3600 > /dev/null
 else
     docker start watchtower > /dev/null
@@ -44,8 +48,12 @@ fi
 # container deletions and Watchtower updates.
 # https://stackoverflow.com/a/50667460
 if [ ! "$(docker ps -a --format {{.Names}} | grep warrior)" ]; then
-    echo "Please wait while the Warrior is downloaded and started..."
-    echo "This may take a few minutes..."
+    if [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+        cat /root/splashes/at-splash-update-640x400-32.fb > /dev/fb0
+    else
+        echo "Please wait while the Warrior is downloaded and started..."
+        echo "This may take a few minutes..."
+    fi
     # Mount the user configuration from the host container
     # https://stackoverflow.com/a/54787364, https://docs.docker.com/storage/bind-mounts
     docker run -d -p 8001:8001 --name warrior -v /root/config.json:/home/warrior/projects/config.json atdr.meo.ws/archiveteam/warrior-dockerfile > /dev/null
@@ -69,9 +77,12 @@ fi
 docker exec -it warrior rm -f /tmp/warrior_reboot_required \
     /tmp/warrior_poweroff_required
 
-echo "Warrior is updating Seesaw Kit."
-echo "The web interface will be ready at http://127.0.0.1:8001 soon."
-echo "Please wait..."
+if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+    echo "Warrior is updating Seesaw Kit."
+    echo "The web interface will be ready at http://127.0.0.1:8001 soon."
+    echo "Please wait..."
+fi
+
 
 for i in `seq 60`; do
 sleep 5
@@ -86,37 +97,54 @@ elif [ $i -eq 60 ]; then
 fi
 done
 
-reset
-echo
-echo "=== Archive Team Warrior ==="
-echo
-echo "The warrior has successfully started up."
-echo
-echo "To manage your warrior, open your web browser"
-echo "and login to the web interface at"
-echo "  http://127.0.0.1:8001"
-echo
+if [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+    cat /root/splashes/at-splash-ready-640x400-32.fb > /dev/fb0
+else
+    reset
+    echo
+    echo "=== Archive Team Warrior ==="
+    echo
+    echo "The warrior has successfully started up."
+    echo
+    echo "To manage your warrior, open your web browser"
+    echo "and login to the web interface at"
+    echo "  http://127.0.0.1:8001"
+    echo
+fi
 echo "Advanced info:"
 echo "  These IP addresses are bound to eth0:"
 ip addr show dev eth0 | awk '{if (match($1, "inet6?") != 0) print "  > "$2}'
-echo
+
+if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+    echo
+fi
 sleep 20
 
+
+# Shutdown splash screens are specified in inittab
 while true; do
 sleep 10
 if docker exec -it warrior test -f /tmp/warrior_reboot_required; then
-    echo "Detected warrior needing reboot. Rebooting!"
+    if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+        echo "Detected warrior needing reboot. Rebooting!"
+    fi
     reboot
 elif docker exec -it warrior test -f /tmp/warrior_poweroff_required; then
-    echo "Detected warrior needing poweroff. Powering off!"
+    if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+        echo "Detected warrior needing poweroff. Powering off!"
+    fi
     poweroff
 elif docker ps -f name=warrior -f status=dead | grep warrior; then
-    echo "Docker container instance dead. Rebooting!"
+    if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+        echo "Docker container instance dead. Rebooting!"
+    fi
     reboot
 elif docker ps -f name=warrior -f status=exited | grep warrior; then
     sleep 5 # Prevent a Watchtower update from shutting down the system
     if docker ps -f name=warrior -f status=exited | grep warrior; then
-        echo "Docker container instance exited, Powering off!"
+        if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
+            echo "Docker container instance exited, Powering off!"
+        fi
         poweroff
     fi
 fi
