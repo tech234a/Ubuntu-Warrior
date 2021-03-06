@@ -40,7 +40,7 @@ if [ ! "$(docker ps -a --format {{.Names}} | grep watchtower)" ]; then
     else
         echo "Please wait while the automatic updater is prepared..."
     fi
-    docker run -d --name watchtower -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --cleanup --interval 3600 > /dev/null
+    docker run -d --name watchtower -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --cleanup --interval 3600
 else
     docker start watchtower > /dev/null
 fi
@@ -60,7 +60,7 @@ if [ ! "$(docker ps -a --format {{.Names}} | grep warrior)" ]; then
     fi
     # Mount the user configuration from the host container
     # https://stackoverflow.com/a/54787364, https://docs.docker.com/storage/bind-mounts
-    docker run -d -p 8001:8001 --name warrior -v /root/config.json:/home/warrior/projects/config.json atdr.meo.ws/archiveteam/warrior-dockerfile > /dev/null
+    docker run -d -p 8001:8001 --name warrior -v /root/config.json:/home/warrior/projects/config.json atdr.meo.ws/archiveteam/warrior-dockerfile
     # Allow reading network stats by non-root
     # Run the adduser command as root: https://stackoverflow.com/a/35485346
     docker exec -u 0 -it warrior adduser warrior dip > /dev/null
@@ -102,6 +102,7 @@ fi
 done
 
 if [ -f /root/splashes/at-splash-ready-640x400-32.fb ]; then 
+    reset
     cat /root/splashes/at-splash-ready-640x400-32.fb > /dev/fb0
 else
     reset
