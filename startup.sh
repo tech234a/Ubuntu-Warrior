@@ -1,6 +1,8 @@
 #!/bin/sh
-if ! [ -f /root/splashes/at-splash-update-640x400-32.fb ]; then 
-    reset
+reset
+if [ -f /root/splashes/at-splash-startup-640x400-32.fb ]; then 
+    cat /root/splashes/at-splash-startup-640x400-32.fb > /dev/fb0
+else
     echo "=== Starting Warrior Download ==="
 fi
 
@@ -88,7 +90,7 @@ fi
 
 for i in `seq 60`; do
 sleep 5
-if docker top warrior | grep run-warrior; then
+if docker top warrior > grep run-warrior; then
     break
 elif [ $i -eq 60 ]; then
     echo "***** Startup Failure! ******"
