@@ -14,6 +14,8 @@ if [ -f /root/branch.txt ]; then
 fi
 
 if [ -f /root/splashes/at-splash-startup-640x400-32.fb ]; then
+    /bin/echo -n -e '\e]P0cccccc'
+    /bin/echo -n -e '\e[?17;14;100c' 
     cat /root/splashes/at-splash-startup-640x400-32.fb > /dev/fb0
 else
     reset
