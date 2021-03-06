@@ -32,7 +32,7 @@ fi
 # OpenRC silently (including errors). Otherwise, boot normally.
 rm /etc/inittab
 cat <<EOT >> /etc/inittab
-::sysinit:/bin/sh -c "if [ -f /root/splashes/at-splash-startup-640x400-32.fb ]; then echo -n -e "\e[?17;14;244c"; cat /root/splashes/at-splash-startup-640x400-32.fb > /dev/fb0; /sbin/openrc sysinit --quiet > /dev/null 2>&1; /sbin/openrc boot --quiet > /dev/null 2>&1; else /sbin/openrc sysinit; /sbin/openrc boot; fi"
+::sysinit:/bin/sh -c "if [ -f /root/splashes/at-splash-startup-640x400-32.fb ]; then echo -n -e '\e[?17;14;244c'; cat /root/splashes/at-splash-startup-640x400-32.fb > /dev/fb0; /sbin/openrc sysinit --quiet > /dev/null 2>&1; /sbin/openrc boot --quiet > /dev/null 2>&1; else /sbin/openrc sysinit; /sbin/openrc boot; fi"
 ::wait:/bin/sh -c "if [ -f /root/splashes/at-splash-startup-640x400-32.fb ]; then cat /root/splashes/at-splash-startup-640x400-32.fb > /dev/fb0; /sbin/openrc default --quiet > /dev/null 2>&1; else /sbin/openrc default; fi"
 
 # Set up a couple of getty's
